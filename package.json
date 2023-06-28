@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "firebase": "^9.23.0",
     "pinia": "^2.1.4",
     "vue": "^3.2.47",
     "vue-router": "^4.2.2"
