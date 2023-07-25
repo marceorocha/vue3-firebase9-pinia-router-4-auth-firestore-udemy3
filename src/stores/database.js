@@ -8,7 +8,8 @@ import router from '../router';
 export const useDatabaseStore = defineStore ('database', {
     state : () => ({
         documents: [],
-        loadingDoc: false
+        loadingDoc: false,
+        loading: false
     }),
     actions: {
         async getUrls() {
@@ -37,6 +38,7 @@ export const useDatabaseStore = defineStore ('database', {
             
         },
         async addUrl(name) {
+            this.loading = true;
             try {
                 const objetoDoc = {
                     name: name,
@@ -49,7 +51,8 @@ export const useDatabaseStore = defineStore ('database', {
                     id: docRef.id
                 })
             } catch (error) {
-                console.log(error);
+                console.log(error.code);
+                return error.code
             } finally {
 
             }
@@ -70,6 +73,8 @@ export const useDatabaseStore = defineStore ('database', {
             }
         },
         async updateUrl(id, name) {
+            this.loading = true;
+
             try {
                 const docRef = doc (db, "urls", id);
                 const docSnap = await getDoc(docRef);
@@ -88,11 +93,15 @@ export const useDatabaseStore = defineStore ('database', {
                 router.push('/')
                 // return docSnap.data().name
             } catch (error) {
-                console.log(error.message)
+                return error.message
+            } finally {
+            this.loading = false;
             }
            
         },
         async deleteUrl(id) {
+            this.loading = true;
+
             try {
                 const docRef = doc(db, 'urls', id);
 
@@ -108,8 +117,11 @@ export const useDatabaseStore = defineStore ('database', {
                 await deleteDoc(docRef);
                 this.documents = this.documents.filter ((item) => item.id !== id);
             } catch (error) {
-                console.log(error.message);
+                return error.message
+            } finally {
+            this.loading = false;
             }
+
         }
     },
     }

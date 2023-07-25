@@ -1,8 +1,7 @@
 <template>
+    <h1 class="text-center">Login</h1>
     <a-row>
         <a-col :xs="{span: 24}" :sm="{span: 12, offset: 6}">
-
-
             <a-form 
             name="basicLogin" 
             autocomplete="off" 
@@ -36,6 +35,9 @@
                     type="primary"
                     html-type="submit" 
                     :disabled="userStore.loadingUser"
+                    @click="success"
+                    :loading="userStore.loadingUser"
+
                     >Acceso</a-button>
                 </a-form-item>
             </a-form>
@@ -47,22 +49,45 @@
 
 <script setup>
     import { reactive } from 'vue';
-    import {useUserStore} from '../stores/user'
+    import {useUserStore} from '../stores/user';
+    import { message } from 'ant-design-vue'
 
     const userStore = useUserStore()
 
     const formState = reactive ({
-        email: 'marchelor@gmail.com', 
-        password: '12345678'
+        email: '', 
+        password: ''
     })
      
 
     const onFinish = async(values) => {
-        await userStore.loginUser(formState.email, formState.password)
+        const error = await userStore.loginUser(formState.email, formState.password);
         console.log('Success:', values);
+
+        if(!error) {
+            return message.success("Bienvenido!")
+        }
+        switch (error) {
+            case 'auth/user-not-found':
+            message.error('No existe esa cuenta');
+            break;
+            case 'auth/wrong-password':
+            message.error('Error en la contraseña');
+            break;
+            case 'auth/too-many-requests':
+            message.error('muchos intentos fallidos, intente mas tarde')
+            default:
+            message.error('Falló algo desde firebase')
+            break;
+        }
 };
 
 const onFinishFailed = errorInfo => {
   console.log('Failed:', errorInfo);
+};
+
+const success = () => {
+  const hide = message.loading('Accediendo a su cuenta..', 0);
+  setTimeout(hide, 2500);
 };
 </script>

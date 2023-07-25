@@ -1,31 +1,90 @@
 <template>
     <div>
-        <h1>Editar id: route.params</h1>
-        <form @submit.prevent="handleSubmit">
-            <input type="text" placeholder="Ingrese el URL" v-model="url">
-            <button type="submit">Editar</button>
-        </form>
+        <h1>Editar id: {{ route.params.id }}</h1>
+        <a-form
+            name="editform"
+            autocomplete="off"
+            layout="vertical"
+            :model="formState"
+            @finish="onFinish"
+        >
+            <a-form-item
+                name="url"
+                label="Ingrese una URL"
+                :rules="[
+                    {
+                        required: true,
+                        whitespace: true,
+                        pattern: /^https?:\/\/[\w\-]+(\.[\w\-]+)+[/#?]?.*$/,
+                        message: 'Ingrese una URL válida',
+                    },
+                ]"
+            >
+                <a-input v-model:value="formState.url"></a-input>
+            </a-form-item>
+            <a-form-item>
+                <a-button
+                    type="primary"
+                    html-type="submit"
+                    :loading="databaseStore.loading"
+                    :disabled="databaseStore.loading"
+                >
+                    Editar URL</a-button
+                >
+            </a-form-item>
+            <a-form-item>
+                <a-button
+                    type="primary"
+                    @click="goBack"
+                    :loading="databaseStore.loading"
+                    :disabled="databaseStore.loading"
+                >
+                    Volver</a-button
+                >
+            </a-form-item>
+        </a-form>
     </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
-import {useDatabaseStore} from '../stores/database'
-const route = useRoute()
-// console.log(route.params.id)
+import { onMounted, reactive } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useDatabaseStore } from "../stores/database";
+import { message } from "ant-design-vue";
 
-const handleSubmit = () => {
-    //validaciones del input
-    databaseStore.updateUrl(route.params.id,url.value)
-}
 
 const databaseStore = useDatabaseStore();
-const url = ref ('');
+
+const route = useRoute();
+const router = useRouter();
+const formState = reactive({
+    url: "",
+});
+
+const onFinish = async (value) => {
+    console.log("todo correcto " + value);
+    const error = await databaseStore.updateUrl(route.params.id, formState.url);
+    if (!error) {
+        formState.url = "";
+        return message.success("URL editada 💋");
+    }
+
+    switch (error) {
+        // buscar errores de firestore
+        default:
+            message.error(
+                "Ocurrió un error en el servidor 💋 intentelo más tarde..."
+            );
+            break;
+    }
+};
 
 onMounted(async () => {
-    url.value = await databaseStore.leerUrl(route.params.id)
-})
+    formState.url = await databaseStore.leerUrl(route.params.id);
+});
 
+const goBack = () => {
+
+  router.push("/");
+};
 </script>
-
