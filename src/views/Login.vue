@@ -55,15 +55,13 @@
     const userStore = useUserStore()
 
     const formState = reactive ({
-        email: '', 
-        password: ''
+        email: 'pepe@pepe.com', 
+        password: 'asdasd'
     })
      
 
     const onFinish = async(values) => {
         const error = await userStore.loginUser(formState.email, formState.password);
-        console.log('Success:', values);
-
         if(!error) {
             return message.success("Bienvenido!")
         }
